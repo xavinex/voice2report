@@ -1,17 +1,24 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { PROMPT_TEMPLATES, getPrompt } from "../constants/promptConfig";
 import { StructuredReport } from "../types";
 
 export const generateReport = async (transcript: string): Promise<StructuredReport> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API Key is missing. Please check your configuration.");
+  // Vite exposes env vars ONLY via import.meta.env and ONLY if they start with VITE_
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please check your configuration (VITE_GEMINI_API_KEY).");
+  }
 
   const ai = new GoogleGenAI({ apiKey });
-  const model = 'gemini-3-flash-preview';
 
-  const date = new Date().toLocaleDateString('en-US', { 
-    year: 'numeric', month: 'long', day: 'numeric' 
+  // keep your model (change if you want)
+  const model = "gemini-3-flash-preview";
+
+  const date = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   try {
@@ -34,18 +41,20 @@ export const generateReport = async (transcript: string): Promise<StructuredRepo
                 properties: {
                   title: { type: Type.STRING },
                   content: { type: Type.STRING },
-                  items: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  items: { type: Type.ARRAY, items: { type: Type.STRING } },
                 },
-                required: ["title", "content"]
-              }
-            }
+                required: ["title", "content"],
+              },
+            },
           },
-          required: ["reportType", "title", "date", "sections"]
-        }
-      }
+          required: ["reportType", "title", "date", "sections"],
+        },
+      },
     });
 
-    const result = JSON.parse(response.text || "{}");
+    // In @google/genai, text is usually available on response.text
+    const raw = response.text ?? "{}";
+    const result = JSON.parse(raw);
     return result as StructuredReport;
   } catch (error) {
     console.error("AI Generation failed:", error);
