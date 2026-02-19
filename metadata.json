@@ -1,0 +1,8 @@
+
+{
+  "name": "Voice2Report Pro",
+  "description": "Professional voice-to-report pipeline using browser speech recognition and Gemini AI for structured business summaries.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
